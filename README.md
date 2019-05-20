@@ -1,0 +1,73 @@
+# BitPay SSPanel-v3-mod
+BitPay - 更匿名、更安全、无需支付宝姓名和账户等个人私密信息。Bitpay利用数字货币的匿名性，保障商户的安全。
+
+你如果是老司机，应该经历过：
+ * 剛繳註冊費，審核等了1天，审核不通过（审核費卒）
+ * 支付平台跑路，无法提币（或暂停维护1个月）。
+ * 自己支付寶或姓名被國安记录在案（被喝茶的支付平台上交)
+
+请继续查看Bitpay数字货币匿名支付，其他[常见问题](https://bitpay.docs.stoplight.io/)。如果需要[在线客服聊天](https://bitpay.dev)。
+
+如果你仍然希望你的用户使用微信、支付宝等原生体验，可以使用混合模式，下面用TomatoBitPay作为例子（支持TMT，以及BitPay）。
+
+> 谨慎能捕千秋蝉 - 周子沐
+
+## 获取授权
+
+先跟管理员获取邀请码，然后注册登录[商家后台](https://merchants.mugglepay.com)，然后选择"个人设置"->“API认证”->“后台服务器”。
+
+我们推荐以USDT或者BTC结算，所以不需要实名认证审核（或者我们不希望存你的隐私数据，例如手机或者支付宝信息）。默认结算用USDT，数字货币相关问题请先查阅[常见问题](https://bitpay.docs.stoplight.io/)。
+
+
+## 文件新增
+
+需要新增4个文件，并且放入对应的目录下，放心复制代码，不会与现有的代码冲突。下载链接：找我们的客服。
+
+ * resources/views/material/user/tomatobitpay.tpl
+ * resources/views/material/user/bitpay.tpl
+ * app/Services/Gateway/BitPay.php
+ * app/Services/Gateway/TomatoBitPay.php
+
+
+
+## 文件修改
+
+需要修改2个配置文件。如果你只用数字货币，就选择bitpay。如果想兼容tomatopay，那就用tomatobitpay。我们已经帮助你兼容两种支付方式。
+
+ * config/.config.php
+ * app/Services/Payment.php
+
+```
+# 修改： config/.config.php
+
+# 取值 none | trimepay | yftpay |tomatopay | tomatobitpay | bitpay
+$System_Config['payment_system']='bitpay';
+
+# 商户后台获取授权码 https://merchants.mugglepay.com/
+$System_Config['bitpay_secret']='XXXX';
+```
+
+```
+# 修改： app/Services/Payment.php, 在对应位置添加几行代码
+use App\Services\Gateway\{
+  ..., BitPay
+};
+
+# 加入 bitpay
+class Payment
+{
+  public static function getClient()
+  {
+    $method = Config::get("payment_system");
+    switch ($method) {
+
+      case("bitpay"):
+        return new BitPay(Config::get('bitpay_secret'));
+      default:
+        return NULL;
+    }
+  }
+}
+
+
+```
